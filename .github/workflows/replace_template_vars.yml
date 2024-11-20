@@ -21,8 +21,8 @@ jobs:
       # Step 2: Validate Inputs
       - name: Validate Inputs
         run: |
-          PREFIX=${{ inputs.component_prefix }}
-          ID=${{ inputs.component_id }}
+          PREFIX=${{ inputs.custom_prefix }}
+          ID=${{ inputs.custom_id }}
 
           # Regular expressions for validation
           REGEX="^[a-zA-Z][a-zA-Z0-9]*$"
