@@ -57,6 +57,12 @@ jobs:
           find . -depth -name '*{{component_id}}*' -execdir bash -c 'mv "$1" "${1//{\{\component_id\}\}/ID}"' _ {} \;
           find . -depth -name '*{{component_prefix}}*' -execdir bash -c 'mv "$1" "${1//\{\{component_prefix\}\}/PREFIX}"' _ {} \;
 
+      - name: Clear and Rebuid Git Index
+        run: |
+          echo "Clearing Git index"
+          rm -f .git/index
+          git reset
+      
       # Step 4: Commit changes
       - name: Commit changes
         run: |
