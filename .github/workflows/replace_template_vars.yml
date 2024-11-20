@@ -1,0 +1,83 @@
+name: REPLACE_TEMPLATE_VARIABLES
+on:
+  workflow_dispatch: # Allows manual trigger with user input
+    inputs:
+      custom_prefix:
+        description: "Enter the component prefix to use"
+        required: true
+        default: "default_component_prefix"
+      custom_id:
+        description: "Enter the component ID to use"
+        required: true
+        default: "default_component_id"
+
+jobs:
+  replace-variables:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Get Custom Inputs
+        run: |
+          echo "CUSTOM_PREFIX=${{ inputs.custom_prefix }}" >> $GITHUB_ENV
+          echo "CUSTOM_ID=${{ inputs.custom_id }}" >> $GITHUB_ENV
+
+      - name: Rename directories, files, and update content
+        run: |
+          # Fetch user inputs
+          PREFIX=$CUSTOM_PREFIX
+          ID=$CUSTOM_ID
+
+          echo "Using PREFIX=$PREFIX and ID=$ID"
+
+          # Step 3.1: Rename directories
+          find . -depth -type d | while read -r dir; do
+            base=$(basename "$dir")
+            parent=$(dirname "$dir")
+
+            # Rename the directory if it contains {{component_prefix}}
+            if [[ "$base" == *"{{component_prefix}}"* ]]; then
+              new_name="${base/{{component_prefix}}/$PREFIX}"
+              mv "$dir" "$parent/$new_name"
+            fi
+
+            # Rename the directory if it contains {{component_id}}
+            if [[ "$base" == *"{{component_id}}"* ]]; then
+              new_name="${base/{{component_id}}/$ID}"
+              mv "$dir" "$parent/$new_name"
+            fi
+          done
+
+          # Step 3.2: Rename files and update content
+          find . -type f | while read -r file; do
+            dir=$(dirname "$file")
+            base=$(basename "$file")
+
+            # Rename the file if it contains {{component_prefix}}
+            if [[ "$base" == *"{{component_prefix}}"* ]]; then
+              new_name="${base/{{component_prefix}}/$PREFIX}"
+              mv "$file" "$dir/$new_name"
+              file="$dir/$new_name"
+            fi
+
+            # Rename the file if it contains {{component_id}}
+            if [[ "$base" == *"{{component_id}}"* ]]; then
+              new_name="${base/{{component_id}}/$ID}"
+              mv "$file" "$dir/$new_name"
+              file="$dir/$new_name"
+            fi
+
+            # Update the content of the file to replace placeholders
+            sed -i "s/{{component_prefix}}/$PREFIX/g" "$file"
+            sed -i "s/{{component_id}}/$ID/g" "$file"
+          done
+
+      # Step 4: Commit changes
+      - name: Commit changes
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          git add .
+          git commit -m "Rename directories, files, and update content with custom inputs"
+          git push
