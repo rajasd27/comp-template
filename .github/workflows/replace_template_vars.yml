@@ -11,12 +11,17 @@ on:
         required: true
         default: "default_component_id"
 
+permissions:
+  contents: write
+
 jobs:
   replace-variables:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       # Step 2: Validate Inputs
       - name: Validate Inputs
@@ -45,8 +50,8 @@ jobs:
       - name: Rename directories, files, and update content
         run: |
           # Fetch validated inputs
-          PREFIX=${{ inputs.component_prefix }}
-          ID=${{ inputs.component_id }}
+          PREFIX=${{ inputs.custom_prefix }}
+          ID=${{ inputs.custom_id }}
 
           echo "Using PREFIX=$PREFIX and ID=$ID"
 
